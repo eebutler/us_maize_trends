@@ -56,9 +56,9 @@ def var_ext(var,stat):
     else:
       d = days[mo[i]-1]
     # only pull values that correspond to days in the month
-    out = stat.ix[i,range(4,4*(d+1),4)] 
+    out = stat.loc[i][range(4,4*(d+1),4)] 
     # replace questionable quality values with NaN
-    out[pd.np.array(stat.ix[i,range(6,6+4*d,4)].notnull())] = np.nan
+    out[pd.np.array(stat.loc[i][range(6,6+4*d,4)].notnull())] = np.nan
     # replace missing values with NaN
     out[out==-9999] = np.nan
     # reindex with proper time stamp
@@ -82,19 +82,21 @@ val_flg = [nam[i]+str(num[i]) for i in range(len(num))]
 # dataframes to save homogenized data
 tmax_all = pd.Series()
 tmin_all = pd.Series()
+prcp_all = pd.Series()
 
 for i,s in enumerate(stations):
   stat = pd.read_fwf(s,widths=wids,
 		      header=None,index_col=False,
 		      names=['ID','YR','MO','VAR']+val_flg)
   # restrict years
-  stat = stat[stat.YR.isin(range(1981,2017))]
+  stat = stat[stat.YR.isin(range(1981,2018))]
 
   tmax = var_ext('TMAX',stat)
   tmin = var_ext('TMIN',stat)
-  #prcp = var_ext('PRCP')
+  prcp = var_ext('PRCP',stat)
   tmax_all = pd.concat([tmax_all,tmax],axis=1)
   tmin_all = pd.concat([tmin_all,tmin],axis=1)
+  prcp_all = pd.concat([prcp_all,prcp],axis=1) 
   if i % 25 == 0: print i
 
 # need to strip first column
@@ -110,3 +112,9 @@ tmin_all.columns = locs.columns
 out = pd.concat([locs,tmin_all])
 # may want to write explicit NaNs in the csv
 out.to_csv('tmin.csv')
+
+prcp_all = prcp_all.iloc[:,1:len(prcp_all.columns)+1]
+prcp_all.columns = locs.columns
+out = pd.concat([locs,prcp_all])
+# may want to write explicit NaNs in the csv
+out.to_csv('prcp.csv')

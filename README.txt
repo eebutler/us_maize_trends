@@ -4,4 +4,4 @@ Two directories contain the code to download and process the crop (crop_data) an
 
 The model folder contains the design_mat.py script which aggregates these data into design matrices for use in the regression results reported. The tr_models.py script conducts the analysis and figs.py produces the figures. Several figures require variables created during tr_models.
 
-Note that an up to date US census file is needed from https://catalog.data.gov/dataset/tiger-line-shapefile-2016-nation-u-s-current-county-and-equivalent-national-shapefile
+In addition to the data downloaded by script the analysis requires a manually downloaded US census file. This may be found at https://catalog.data.gov/dataset/tiger-line-shapefile-2016-nation-u-s-current-county-and-equivalent-national-shapefile

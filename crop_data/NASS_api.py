@@ -9,7 +9,7 @@ api_key = '49BFB38E-61E8-3809-8C09-11776677625B'
 states = ['IL','IN','IA','KS','KY','MI','MN','MO','NE','OH','SD','WI']
 
 # year range, remember python indexing
-years = map(str,range(1981,2017))
+years = map(str,range(1981,2018))
 
 # prepare an empty dataframe to accumulate all the values
 df_all = pd.DataFrame()

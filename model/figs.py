@@ -11,7 +11,7 @@ yd_mat = pd.read_csv('yd_mat.csv',index_col=[0,1])
 # straighten out the column names
 col = yd_mat.columns.values
 col[0] = 'Year'
-col[-1] = 'geoid'
+col[col=='geoid.1'] = 'geoid'
 yd_mat.columns = col
 # convert geoid to string to access both state and county components
 yd_mat.geoid = map(str,yd_mat.geoid)
@@ -91,8 +91,8 @@ for i in range(len(stn)):
   fdg = fdg.groupby(stp.loc[stn[i],:].loc['1981':'1990'].index.dayofyear)
   fdm = fdg.mean()
   
-  ldg = stp.loc[stn[i],:].loc['2007':'2016']
-  ldg = ldg.groupby(stp.loc[stn[i],:].loc['2007':'2016'].index.dayofyear)
+  ldg = stp.loc[stn[i],:].loc['2008':'2017']
+  ldg = ldg.groupby(stp.loc[stn[i],:].loc['2008':'2017'].index.dayofyear)
   ldm = ldg.mean()
   
   ia = [s==fips[i] for s in st]
@@ -101,7 +101,7 @@ for i in range(len(stn)):
   kdd_fdm = kdd_fdg.mean().mean(axis=1)
   kdd_fdm = kdd_fdm.rolling(30).mean()
   
-  kdd_ldg = kdd.loc['2007':'2016',ia].groupby(kdd.loc['2007':'2016',ia].index.dayofyear)
+  kdd_ldg = kdd.loc['2008':'2017',ia].groupby(kdd.loc['2008':'2017',ia].index.dayofyear)
   kdd_ldm = kdd_ldg.mean().mean(axis=1)
   kdd_ldm = kdd_ldm.rolling(30).mean()
   
@@ -109,7 +109,7 @@ for i in range(len(stn)):
   gdd_fdm = gdd_fdg.mean().mean(axis=1)
   gdd_fdm = gdd_fdm.rolling(30).mean()
   
-  gdd_ldg = gdd.loc['2007':'2016',ia].groupby(gdd.loc['2007':'2016',ia].index.dayofyear)
+  gdd_ldg = gdd.loc['2008':'2017',ia].groupby(gdd.loc['2008':'2017',ia].index.dayofyear)
   gdd_ldm = gdd_ldg.mean().mean(axis=1)
   gdd_ldm = gdd_ldm.rolling(30).mean()
   
@@ -195,7 +195,7 @@ kdd_fdg = kdd.loc['1981':'1990',:].groupby(kdd.loc['1981':'1990',:].index.dayofy
 kdd_fdm = kdd_fdg.mean().mean(axis=1)
 kdd_fdm = kdd_fdm.rolling(30).mean()
 
-kdd_ldg = kdd.loc['2007':'2016',:].groupby(kdd.loc['2007':'2016',:].index.dayofyear)
+kdd_ldg = kdd.loc['2008':'2017',:].groupby(kdd.loc['2008':'2017',:].index.dayofyear)
 kdd_ldm = kdd_ldg.mean().mean(axis=1)
 kdd_ldm = kdd_ldm.rolling(30).mean()
 
@@ -203,7 +203,7 @@ gdd_fdg = gdd.loc['1981':'1990',:].groupby(gdd.loc['1981':'1990',:].index.dayofy
 gdd_fdm = gdd_fdg.mean().mean(axis=1)
 gdd_fdm = gdd_fdm.rolling(30).mean()
 
-gdd_ldg = gdd.loc['2007':'2016',:].groupby(gdd.loc['2007':'2016',:].index.dayofyear)
+gdd_ldg = gdd.loc['2008':'2017',:].groupby(gdd.loc['2008':'2017',:].index.dayofyear)
 gdd_ldm = gdd_ldg.mean().mean(axis=1)
 gdd_ldm = gdd_ldm.rolling(30).mean()
 
@@ -379,7 +379,6 @@ for i in range(6):
   nm = str.split(cb.name,'_')
   nm[0] = fn[i%3]
   nm = ' '.join(nm)
-  #cou_plot(cb,srng,'Sensitivity: '+nm+' [(kg/ha)/($^\circ$C day)]','BrBG','',cb.name+'_B.pdf')
   if i<3:
     cou_plot(cyld,yrng,nm+' Yield Trend [(t/ha)/decade]','RdYlGn','',cyld.name+'.pdf')
     cou_plot(cdyld,yrng,nm+' Yield Trend [(t/ha)/decade]','RdYlGn','',
@@ -410,7 +409,7 @@ yd_mat = pd.read_csv('yd_mat.csv',index_col=[0,1])
 # straighten out the column names
 col = yd_mat.columns.values
 col[0] = 'Year'
-col[-1] = 'geoid'
+col[col=='geoid.1'] = 'geoid'
 yd_mat.columns = col
 # convert geoid to string to access both state and county components
 yd_mat.geoid = map(str,yd_mat.geoid)
@@ -446,6 +445,58 @@ cb.ax.tick_params(labelsize=18)
 cb.set_label('Yield Trend [(t/ha)/decade]',size=18)
 plt.savefig('yld_colbar.pdf')
 plt.close('all')
+
+st_all = ph_tr.index.get_level_values(0)
+
+drng = [-1,1]
+
+def st_plot(y,rng,label,colbar,text_label,name,ori='horizontal'):
+  cmap = plt.get_cmap(colbar)
+  norm = mpl.colors.Normalize(rng[0],rng[1])
+  col_prod = mpl.cm.ScalarMappable(norm=norm,cmap=cmap)
+  sg = list(states.geometries())  
+  ## plot boundaries
+  ax = plt.axes(projection=ccrs.LambertConformal())
+  ax.set_extent([-100.75, -81, 35.5, 49], ccrs.Geodetic())
+  for i,s in enumerate(states.records()):
+    stn = s.attributes['name'].upper()
+    if stn in st_all:
+      facecolor = col_prod.to_rgba(y.loc[stn])[0:3]
+      ax.add_geometries([sg[i]], ccrs.PlateCarree(),
+                          facecolor=facecolor, edgecolor='black',zorder=0)
+    else:
+      ax.add_geometries([sg[i]], ccrs.PlateCarree(),
+                          facecolor='none', edgecolor='black',zorder=1)
+
+  if label != None: 
+    sm = plt.cm.ScalarMappable(cmap=cmap,norm=norm)
+    sm.set_array(y)
+    cbar = plt.colorbar(sm,ax=ax,orientation=ori,pad=0.05,shrink=0.75,aspect=15)
+    cbar.set_label(label)
+  
+  pte = plt.text(0.005,0.90,text_label,transform=ax.transAxes) 
+ 
+  plt.savefig(name,bbox_inches='tight')
+  plt.close()
+
+label = 'Vegetative Start Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'Veg_st'],drng,label,'RdYlGn','','Veg_st.pdf')
+label = 'Early Grain Fill Start Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'EGF_st'],drng,label,'RdYlGn','','EGF_st.pdf')
+label = 'Late Grain Fill Start Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'LGF_st'],drng,label,'RdYlGn','','LGF_st.pdf')
+label = 'Vegetative End Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'Veg_en'],drng,label,'RdYlGn','','Veg_en.pdf')
+label = 'Early Grain Fill End Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'EGF_en'],drng,label,'RdYlGn','','EGF_en.pdf')
+label = 'Late Grain Fill End Date Trend [days/year]'
+st_plot(ph_tr.loc[:,'LGF_en'],drng,label,'RdYlGn','','LGF_en.pdf')
+label = 'Vegetative Duration Trend [days/year]'
+st_plot(ph_tr.loc[:,'Veg'],drng,label,'RdYlGn','','Veg.pdf')
+label = 'Early Grain Fill Duration Trend [days/year]'
+st_plot(ph_tr.loc[:,'EGF'],drng,label,'RdYlGn','','EGF.pdf')
+label = 'Late Grain Fill Duration Trend [days/year]'
+st_plot(ph_tr.loc[:,'LGF'],drng,label,'RdYlGn','','LGF.pdf')
 
 ###############
 
@@ -485,30 +536,45 @@ plt.fill_between(yrs,y[1,:],y[2,:],facecolor='b',alpha=0.5,zorder=0)
 plt.fill_between(yrs,y[2,:],y[3,:],facecolor='r',alpha=0.7,zorder=0)
 #plt.fill_between(yrs,y[3,:],y[4,:],facecolor='k',alpha=0.5)
 p0, = plt.plot(yrs,yld0,'k-',lw=2,label='Base Yield',zorder=1)
-p1, = plt.plot(yrs,y1,'g-',lw=2,label='Technology',zorder=2)
+#p1, = plt.plot(yrs,y1,'g-',lw=2,label='Technology',zorder=2)
+p1, = plt.plot(yrs,y1,'g-',lw=2,label='Other Factors',zorder=2)
 p2, = plt.plot(yrs,y2,'b-',lw=2,label='Timing',zorder=2)
 p3, = plt.plot(yrs,y3,'r-',lw=2,label='Climate',zorder=2)
 p4, = plt.plot(yrs,y[3],color='0.66',lw=2,label='Yield Estimate',zorder=1)
 p5, = plt.plot(yrs,yld,'k.',label='Yield Data',zorder=2)
 
+#### make separate plot and concatenate?
 # trend bars
 yb = [yld0[-1],y1[-1],y2[-1],y3[-1]]
 yb = np.stack([yb,yb])
-plt.fill_between([2016.5,2017.5],yb[:,0],yb[:,1],facecolor='g',alpha=0.7)
-plt.fill_between([2016.5,2017.5],yb[:,1],yb[:,2],facecolor='b',alpha=0.7)
-plt.fill_between([2016.5,2017.5],yb[:,2],yb[:,3],facecolor='r',alpha=0.7)
+plt.fill_between([2019,2020],yb[:,0],yb[:,1],facecolor='g',alpha=0.7)
+plt.fill_between([2019,2020],yb[:,1],yb[:,2],facecolor='b',alpha=0.7)
+plt.fill_between([2019,2020],yb[:,2],yb[:,3],facecolor='r',alpha=0.7)
 # confidence intervals
-yb95 = np.array(tr_comb95).ravel()*35
-plt.plot([2016.75, 2016.75],yb[0,0]+yb95[0:2],'g')
-plt.plot([2017.25, 2017.25],yb[0,1]+yb95[2:4],'b')
-plt.plot([2016.75, 2016.75],yb[0,2]+yb95[4:6],'r')
+yb95 = np.array(tr_comb95).ravel()*36
+plt.plot([2019.25, 2019.25],yb[0,0]+yb95[0:2],'g')
+plt.plot([2019.75, 2019.75],yb[0,1]+yb95[2:4],'b')
+plt.plot([2019.25, 2019.25],yb[0,2]+yb95[4:6],'r')
+plt.plot([2018,2018],[4,12],'k',lw=0.75)
 
-plt.xlim([1981,2018])
+plt.xlim([1981,2021])
 plt.ylim([4,12])
 plt.xlabel('Year')
+plt.xticks(np.arange(1985,2020,5))
 plt.ylabel('Yield [tonnes/ha]')
 plt.legend(frameon=False,loc='upper left',numpoints=1,scatterpoints=1)
-plt.savefig('yld_stack.pdf')
+plt.savefig('yld_stack_of.pdf')
+
+#imagegrid or subplot
+yb = [yld0[-1],y1[-1],y2[-1],y3[-1]]
+yb = np.stack([yb,yb])
+plt.fill_between([0.05,.1],yb[:,0],yb[:,1],facecolor='g',alpha=0.7)
+plt.fill_between([0.05,.1],yb[:,1],yb[:,2],facecolor='b',alpha=0.7)
+plt.fill_between([0.05,.1],yb[:,2],yb[:,3],facecolor='r',alpha=0.7)
+plt.xlim([0,1])
+plt.ylim([4,12])
+plt.axis('off')
+plt.savefig('test.pdf')
 
 # 3 alt
 #plt.fill_between(yrs,0,y[0,:],facecolor='k',alpha=0.7)
@@ -549,19 +615,28 @@ iqr = [i.get_ydata()[[0,3]] for i in iqb]
 iqr_mat = np.matrix(iqr)
 plt.close()
 
-yrs = np.linspace(0,35,36)
-x = yrs+1
-b = np.polyfit(yrs,m_dd.values,1)
+#yrs = np.linspace(0,35,36)
+x = np.linspace(1,37,37)
+b = np.polyfit(ddcl.index.get_level_values('Year'),ddcl,1)
+m_dd = c_durdiff.groupby('Year').mean().values
+#b = np.polyfit(yrs,m_dd.values,1)
+#yrx = np.array(c_durdiff.index.get_level_values('Year'))
+#yrd = np.array(c_durdiff.values)
+#b = np.polyfit(yrx,yrd,1)
+#ix = np.in1d(m_dd.index,[1983,1988,2012],invert=True)
+#bo = np.polyfit(yrs[ix],m_dd.values[ix],1)
 
 plt.vlines(x,iqr_mat[:,0],iqr_mat[:,1],colors='grey')
 plt.xlabel('Year')
 plt.ylabel('Yield Difference [t/ha]')
-plt.plot(x,m_dd.values,'ko')
-plt.plot(x,b[1]+b[0]*yrs,'b')
+plt.plot(x,m_dd,'ko')
+plt.plot(x,b[1]+b[0]*(x+1980),'r')
+#plt.plot(x,b[1]+b[0]*yrs,'r')
+#plt.plot(x,bo[1]+bo[0]*yrs,'m')
 plt.plot(x,trdd95[0],'r--')
 plt.plot(x,trdd95[1],'r--')
-plt.plot(x,trddo95[0],'m--')
-plt.plot(x,trddo95[1],'m--')
+#plt.plot(x,trddo95[0],'m--')
+#plt.plot(x,trddo95[1],'m--')
 locs = [1,5,10,15,20,25,30,35]
 labels = ['1981','1985','1990','1995','2000','2005','2010','2015']
 plt.xticks(locs,labels)
@@ -583,7 +658,7 @@ for i,f in enumerate(fips):
   iqr = [iq.get_ydata()[[0,3]] for iq in sbox['boxes']]
   iqr_mat = np.matrix(iqr)
   
-  yrs = np.linspace(0,35,36)
+  yrs = np.linspace(0,36,37)
   x = yrs+1
   
   plt.vlines(x,iqr_mat[:,0],iqr_mat[:,1],colors='grey')
@@ -598,10 +673,16 @@ for i,f in enumerate(fips):
   plt.title(stn[i])
   #plt.ylim(-0.7,1.0)
    
-  plt.savefig('yld_diff_'+stn[i]+'_ylim.pdf')
+  plt.savefig('yld_diff_'+stn[i]+'_var.pdf')
   plt.close('all')
 
-
+# clustering
+for i in range(775):                                          
+  plt.plot(clus.lon.values[i],clus.lat.values[i],marker="$"+str(km108cls.labels_[i])+"$",color='k')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.savefig('clusters.pdf')
+plt.close('all')
   
 
 # boxplots
