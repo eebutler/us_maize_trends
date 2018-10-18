@@ -2,9 +2,10 @@ import requests, json
 import pandas as pd
 import numpy as np
 
-# don't forget to delete the api_key before uploading...
-api_key = '49BFB38E-61E8-3809-8C09-11776677625B'
-
+# obtain an api_key by request from NASS
+# https://quickstats.nass.usda.gov/api
+api_key = XXX
+ 
 # states to access
 states = ['IL','IN','IA','KS','KY','MI','MN','MO','NE','OH','SD','WI']
 
