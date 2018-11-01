@@ -849,8 +849,8 @@ for i in range(1000):
 
 br = np.polyfit(ddr.index.get_level_values(0),ddr.values,1)
 ddrboot.sort()
-ddrboot[249],ddrboot[9749]
-len(np.where(np.array(ddrboot)<0)[0])/10000.0
+ddrboot[24],ddrboot[974]
+len(np.where(np.array(ddrboot)<0)[0])/1000.0
 
 # regional 95% CI and p-value, w/o 2017
 ddr2 = ddr.iloc[0:36]
