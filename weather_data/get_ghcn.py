@@ -28,8 +28,8 @@ locs = pd.DataFrame(data=tmp.values,index=stations,columns=loc_var).T
 stations = [s+'.dly' for s in stations]
 
 ftp = FTP('ftp.ncdc.noaa.gov')
-# just being respectful
-ftp.login(passwd='eebutler@umn.edu')
+# email address should work for password
+ftp.login(passwd='XXX@YYY')
 ftp.cwd('/pub/data/ghcn/daily/hcn')
 # make sure you're in the right directory
 for stat in stations:
